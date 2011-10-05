@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+#
+# The MIT License (http://www.opensource.org/licenses/mit-license.php/)
+# Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
+# Revision: r2
+#
+# Description:
+#   Bash completion script for 'sur', the Subtle WM's sublet manager.
+#   For more info see Subforge (http://subforge.org/projects/subtle/wiki/Subtle/)
+#   and Sur (http://subforge.org/projects/subtle/wiki/Sur/).
+#
+# Installation:
+#   If you have a system bash completion, just put this file in
+#   /etc/bash_completion.d/ directory. You can also 'source' it from
+#   $HOME/.bash_completion file. In other cases 'source' this file from your
+#   .bashrc file.
+#
+# Other notes:
+# - For full-featured filename completion script requires 'bash-completion'
+#   package (may have distinct name, e.g. 'bash_completion').
+#     % pacman -S bash-completion
+#
+# - This script can be used along with Zsh. But note, that there should be
+#   similar native Zsh implementation, which is a way better.
+#
+# - The completion might be slow. This is because of rather slow sur's workflow.
+
+# Make this script ZSH compatible.
+if [[ -n ${ZSH_VERSION-} ]]; then
+  autoload -U +X bashcompinit && bashcompinit
+fi
+
+# Complete command names.
+#
+#   % sur <TAB>
+#   'annotate build config fetch' and so on.
+#
+_sur_commands ()
+{
+  local opts
+  opts=$(sur help | awk '/^\s\s[a-z]+/{ print $1 }')
+  COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+}
+
+# Complete long options for given command.
+#
+#   % sur annotate clock --<TAB>
+#   --help --version
+#
+_sur_long_options ()
+{
+  local opts command="${COMP_WORDS[1]}"
+  opts=$(sur "$command" -h | awk '/\--/{ print $2 }' | tr "\n" " ")
+  COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+}
+
+# Find all installed sublets on the local system.
+#
+#   % sur uninstall <TAB>
+#   cpu clock wifi
+#
+_sur_local_sublets ()
+{
+  local sublets
+  sublets=$(sur list -c | awk '/\d+]/{ print $2" " }')
+  COMPREPLY=( $(compgen -W "$sublets" -- "$cur") )
+}
+
+# Find all sublets in Subtle User Repository.
+#
+_sur_remote_sublets ()
+{
+  local sublets
+  sublets=$(sur list -r -c | awk '/^[\(\d\)+]/{ print $2" "}')
+  COMPREPLY=( $(compgen -W "$sublets" -- "$cur" ) )
+}
+
+# Search for specific sublet's version.
+#
+#   % sur install cpu -v <TAB>
+#   0.1 0.2 0.3 0.4
+#
+_sur_version ()
+{
+  local opts remote
+  local command=${COMP_WORDS[1]}
+  local sublet=${COMP_WORDS[2]} 
+
+  if [ "$command" == "install" ]; then
+    remote="-r"
+  fi
+
+  opts=$(sur list -c "$remote" | egrep "^\([0-9]+\) ${sublet}" | \
+         cut -d'(' -f3- | cut -d")" -f1 | sed 's/,//g' | tr '\n' ' ')
+  COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+}
+
+# Complete 'specs' for 'build' command.
+#
+#   % sur build ~/code/specs/<TAB>
+#   ~/code/specs/fry.spec  ~/code/specs/leela.spec  ~/code/specs/zoidberg.SPEC
+#
+_sur_spec_files ()
+{
+  local pattern='!*.@(spec|SPEC)'
+  COMPREPLY=( $(compgen -f -X "$pattern" -- "$cur") )
+}
+
+# Complete Ruby language sources.
+#
+#   % sur submit ~/sublets/<TAB>
+#   ~/sublets/spaceship.rb  ~/sublets/quirkysublet.rb  ~/sublets/dontaskme.RB
+#
+_sur_ruby_files ()
+{
+  local pattern='!*.@(rb|RB)'
+  COMPREPLY=( $(compgen -f -X "$pattern" -- "$cur") )
+}
+
+# Use this, when command
+# have no any arguments.
+#
+__sur_try_long ()
+{
+  # If long option do exist, complete it.
+  if [ -n COMPREPLY ]; then
+    _sur_long_options
+  else # return emptiness.
+    COMPREPLY=()
+  fi
+}
+
+# Main completion function.
+#
+_sur ()
+{
+  local cur prev
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  if [ -n "$prev" ]; then
+    _sur_commands
+  fi
+
+  case "$prev" in
+    -v|--version) _sur_version     ;;
+    annotate)  _sur_local_sublets  ;;
+    build)     _sur_spec_files     ;;
+    config)    _sur_local_sublets  ;;
+    fetch)     _sur_remote_sublets ;;
+    help)      __sur_try_long      ;;
+    grabs)     _sur_local_sublets  ;;
+    info)      _sur_local_sublets  ;;
+    install)   _sur_remote_sublets ;;
+    list)      __sur_try_long      ;;
+    notes)     _sur_local_sublets  ;;
+    query)     _sur_local_sublets  ;;
+    reorder)   __sur_try_long      ;;
+    server)    __sur_try_long      ;;
+    submit)    _sur_ruby_files     ;;
+    template)  _sur_ruby_files     ;;
+    test)      _sur_local_sublets  ;;
+    uninstall) _sur_local_sublets  ;;
+    unpack)    _sur_local_sublets  ;;
+    update)    __sur_try_long      ;;
+    upgrade)   __sur_try_long      ;;
+    version)   __sur_try_long      ;;
+    *)                             ;;
+  esac
+
+  if [[ "$cur" == -* ]]; then
+    _sur_long_options
+  fi
+}
+
+complete -o dirnames -F _sur sur
