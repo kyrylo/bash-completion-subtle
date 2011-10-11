@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+#
+# The MIT License (http://www.opensource.org/licenses/mit-license.php/)
+# Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
+# Revision: r1
+#
+# Description:
+#   Zsh completion script for 'subtle', the Subtle Window Manager.
+#   For more info see Subforge (http://subforge.org/projects/subtle/wiki/Subtle/).
+#
+# Installation:
+#   If you have a system bash completion, just put this file in
+#   /etc/bash_completion.d/ directory. You can also 'source' it from
+#   $HOME/.bash_completion file. In other cases 'source' this file from your
+#   .bashrc file.
+#
+# Other notes:
+# - For full-featured filename completion script requires 'bash-completion'
+#   package (may have distinct name, e.g. 'bash_completion').
+#     % pacman -S bash-completion
+#
+# - This script can be used along with Zsh. But note, that there should be
+#   similar native Zsh implementation, which is a way better.
+#
+
+# Make this script ZSH compatible.
+if [[ -n ${ZSH_VERSION-} ]]; then
+  autoload -U +X bashcompinit && bashcompinit
+fi
+
+# Complete displays.
+#
+#   % subtle -d <TAB>
+#   :0 :1 :10
+#
+_subtle_displays ()
+{
+  local displays
+  displays=$(ls /tmp/.X11-unix | sed 's/X/:/g' | egrep '^:')
+  COMPREPLY=( $(compgen -W "$displays" -- "$cur") )
+}
+
+# Complete long options.
+#
+#   % subtle --c<TAB>
+#   --check  --config
+#
+_subtle_long_options ()
+{
+  local long_opts
+  long_opts="--config --display --help --check --no-randr --relpace --sublets \
+             --version --level --debug"
+  COMPREPLY=( $(compgen -W "$long_opts" -- "$cur") )
+}
+
+# Complete short options.
+#
+#   % subtle -<TAB>
+#   -c -d -D -h -k -l -n -r -s -v
+#
+_subtle_short_options ()
+{
+  local short_opts
+  short_opts="-c -d -h -k -n -r -s -v -l -D"
+  COMPREPLY=( $(compgen -W "$short_opts" -- "$cur") )
+}
+
+# Complete Ruby language sources.
+#
+#   % subtle --config ~/config/<TAB>
+#   ~/sublets/config.rb  ~/sublets/subtle.rb  ~/sublets/customconfig.RB
+#
+_subtle_ruby_files ()
+{
+  local pattern='!*.@(rb|RB)'
+  COMPREPLY=( $(compgen -f -X "$pattern" -- "$cur") )
+}
+
+_subtle ()
+{
+  local cur prev
+  cur="${COMP_WORDS[COMP_CWORD]}"
+  prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+  case "$prev" in
+    -c|--config) _subtle_ruby_files ;;
+    -d|--display) _subtle_displays ;;
+  esac
+
+  if [[ "$COMP_CWORD" == 1 ]]; then
+    case "$cur" in
+      -)  _subtle_short_options ;;
+      --) _subtle_long_options  ;;
+      *)  _subtle_long_options  ;;
+    esac
+  fi
+}
+
+complete -o dirnames -F _subtle subtle
