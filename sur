@@ -2,12 +2,15 @@
 #
 # The MIT License (http://www.opensource.org/licenses/mit-license.php/)
 # Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
-# Revision: r2
+# Revision: r3
+#
+# Homepage:
+#   Repository: http://www.github.com/kyrylo/subtle-completion/
 #
 # Description:
 #   Bash completion script for 'sur', the Subtle WM's sublet manager.
-#   For more info see Subforge (http://subforge.org/projects/subtle/wiki/Subtle/)
-#   and Sur (http://subforge.org/projects/subtle/wiki/Sur/).
+#   For more info see Subforge (http://www.subforge.org/projects/subtle/wiki/Subtle/)
+#   and Sur (http://www.subforge.org/projects/subtle/wiki/Sur/).
 #
 # Installation:
 #   If you have a system bash completion, just put this file in
