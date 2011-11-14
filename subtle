@@ -2,7 +2,7 @@
 #
 # The MIT License (http://www.opensource.org/licenses/mit-license.php/)
 # Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
-# Revision: r2
+# Revision: r3
 #
 # Homepage:
 #   Repository: http://www.github.com/kyrylo/subtle-completion/
@@ -38,6 +38,12 @@ fi
 #
 _subtle_displays ()
 {
+  # Uh oh: be careful with this, dude! Touching this global variable may cause
+  # problems with other completion functions (e.g. for mount, scp and others).
+  # However, without this tweak, completion for multiple screens would be messed
+  # up. See http://tiswww.case.edu/php/chet/bash/FAQ at paragraph E13.
+  COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+
   local displays
   displays=$(ls /tmp/.X11-unix | sed 's/X/:/g' | egrep '^:')
   COMPREPLY=( $(compgen -W "$displays" -- "$cur") )
