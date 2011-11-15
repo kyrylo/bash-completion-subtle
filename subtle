@@ -2,7 +2,7 @@
 #
 # The MIT License (http://www.opensource.org/licenses/mit-license.php/)
 # Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
-# Revision: r3
+# Revision: r4
 #
 # Homepage:
 #   Repository: http://www.github.com/kyrylo/subtle-completion/
@@ -56,9 +56,12 @@ _subtle_displays ()
 #
 _subtle_long_options ()
 {
-  local long_opts
-  long_opts="--config --display --help --check --no-randr --relpace --sublets \
-             --version --level --debug"
+  local long_opts="--version --check --display --help --debug"
+
+  if [ $COMP_CWORD -ge 3 ]; then
+    long_opts="--config --no-randr --relpace --sublets --level"
+  fi
+
   COMPREPLY=( $(compgen -W "$long_opts" -- "$cur") )
 }
 
@@ -69,8 +72,12 @@ _subtle_long_options ()
 #
 _subtle_short_options ()
 {
-  local short_opts
-  short_opts="-c -d -h -k -n -r -s -v -l -D"
+  local short_opts="-v -k -d -h -D"
+
+  if [ $COMP_CWORD -ge 3 ]; then
+    short_opts="-c -n -r -s -l"
+  fi
+
   COMPREPLY=( $(compgen -W "$short_opts" -- "$cur") )
 }
 
@@ -90,10 +97,11 @@ _subtle ()
   local cur prev
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
+  cmd="${COMP_WORDS[1]}"
 
   case "$prev" in
-    -c|--config) _subtle_ruby_files ;;
-    -d|--display) _subtle_displays ;;
+    -c|--config) _subtle_ruby_files && return 0 ;;
+    -d|--display) _subtle_displays  && return 0 ;;
   esac
 
   if [[ "$COMP_CWORD" == 1 ]]; then
@@ -103,6 +111,11 @@ _subtle ()
       *)  _subtle_long_options  ;;
     esac
   fi
+
+  case $cmd in
+    -d)        _subtle_short_options ;;
+    --display) _subtle_long_options  ;;
+  esac
 }
 
 complete -o dirnames -F _subtle subtle
