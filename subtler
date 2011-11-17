@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#
+# The MIT License (http://www.opensource.org/licenses/mit-license.php/)
+# Copyright © 2011 Kirill Silin <kyrylosilin@gmail.com>
+#
+# Homepage:
+#   Repository: http://www.github.com/kyrylo/bash-completion-subtle/
+
+# Description:
+#   Bash completion script for 'subtler', the Subtle WM's command line interface.
+#   For more info see Subforge (http://subforge.org/projects/subtle/wiki/Subtle/)
+#   and Subtler (http://subforge.org/projects/subtle/wiki/Subtler/).
+#
+# Installation:
+#   If you have a system bash completion, just put this file into
+#   /etc/bash_completion.d/ directory. You can also 'source' it from
+#   $HOME/.bash_completion file. In other cases 'source' this file from your
+#   .bashrc file.
+#
+# Other notes:
+# - For full-featured filename completion script requires 'bash-completion'
+#   package (may have distinct name, e.g. 'bash_completion').
+#     % pacman -S bash-completion
+#
